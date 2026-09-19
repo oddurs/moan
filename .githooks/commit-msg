@@ -2,10 +2,10 @@
 # Conventional Commits, imperative, subject at most 72 characters.
 set -euo pipefail
 subject=$(head -1 "$1")
-[[ "$subject" =~ ^(feat|fix|chore|docs|perf|refactor|test)(\([a-z0-9-]+\))?!?:\ .+ ]] || {
+[[ "$subject" =~ ^(feat|fix|chore|docs|perf|refactor|test|build|ci)(\([a-z0-9-]+\))?!?:\ .+ ]] || {
   echo "commit-msg: expected '<type>: <subject>', got:" >&2
   echo "  $subject" >&2
-  echo "types: feat fix chore docs perf refactor test" >&2
+  echo "types: feat fix chore docs perf refactor test build ci" >&2
   exit 1
 }
 (( ${#subject} <= 72 )) || { echo "commit-msg: subject is ${#subject} characters, limit is 72" >&2; exit 1; }
