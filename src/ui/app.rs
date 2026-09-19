@@ -983,6 +983,8 @@ impl App {
     /// the original text when it is expanded — so this is cheap, and it only
     /// runs when the rows, the expansions or the width actually change.
     pub fn lay_out(&mut self, width: u16, body_height: impl Fn(&Event, u16) -> usize) {
+        #[cfg(test)]
+        LAYOUTS.with(|n| n.set(n.get() + 1));
         self.laid_out_at = width;
         self.row_starts.clear();
         self.row_starts.reserve(self.view.len());
@@ -1511,6 +1513,19 @@ impl App {
         self.sync_view();
         self.dirty = true;
     }
+}
+
+/// How many times the whole conversation has been measured, and how many rows
+/// the last frame actually built. Both are what "drawing is flat" means, and
+/// both are counts rather than clocks, so the assertion says the same thing on
+/// a loaded machine as on an idle one.
+///
+/// Thread-local because the suite runs in parallel and every other test that
+/// draws a frame would otherwise be counted too.
+#[cfg(test)]
+thread_local! {
+    pub static LAYOUTS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+    pub static ROWS_BUILT: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
 }
 
 /// Spawn a bounded pool that turns jobs into gists.
