@@ -57,10 +57,14 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo metadata --locked --format-version 1 > /dev/null
 
+  # The cargo-audit binary rather than a wrapper around it, so CI and a
+  # developer's machine read the same .cargo/audit.toml and reach the same
+  # verdict. The wrapper has its own idea of which warnings are fatal.
   audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: rustsec/audit-check@v2
+      - uses: taiki-e/install-action@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          tool: cargo-audit
+      - run: cargo audit
