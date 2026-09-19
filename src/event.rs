@@ -235,6 +235,47 @@ pub fn clip(s: &str, n: usize) -> String {
 mod tests {
     use super::*;
 
+    /// The gist cache is keyed on this string. If it changes, every summary
+    /// ever bought stops being found and is bought again — silently, and at
+    /// the reader's expense.
+    ///
+    /// So the value is written down rather than computed by the test. A hash
+    /// library upgrade, a reordered `update`, or a renamed `Kind` label all
+    /// change it, and all of them should be a decision somebody made on
+    /// purpose. `GIST_VERSION` is the deliberate way to invalidate the cache;
+    /// this test is here to make sure nothing else does it by accident.
+    #[test]
+    fn the_cache_key_does_not_move_on_its_own() {
+        let e = Event {
+            uid: "u".into(),
+            session: "s".into(),
+            ts: chrono::Utc::now(),
+            role: Role::Assistant,
+            kind: Kind::Say,
+            raw: "the quick brown fox jumps over the lazy dog".into(),
+            gist: String::new(),
+            gist_src: GistSource::Pending,
+            outcome: None,
+            is_error: false,
+            tokens: 0,
+        };
+        assert_eq!(
+            e.content_hash(),
+            "b95b31801103360e",
+            "the cache key moved: every summary already bought would be bought \
+             again. If this was deliberate, bump GIST_VERSION and update this."
+        );
+        // The timestamp, the session and the uid are deliberately not in it:
+        // the same paragraph in two conversations is condensed once.
+        let elsewhere = Event {
+            uid: "other".into(),
+            session: "other".into(),
+            ts: chrono::Utc::now(),
+            ..e.clone()
+        };
+        assert_eq!(e.content_hash(), elsewhere.content_hash());
+    }
+
     #[test]
     fn a_preview_reads_as_prose_not_as_source() {
         let raw =
