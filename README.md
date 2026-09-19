@@ -1,5 +1,9 @@
 # moan
 
+[![check](https://github.com/oddurs/moan/actions/workflows/ci.yml/badge.svg)](https://github.com/oddurs/moan/actions/workflows/ci.yml)
+[![MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+[![Rust 1.90+](https://img.shields.io/badge/rust-1.90%2B-orange.svg)](rust-toolchain.toml)
+
 A compressed, live transcript of your coding-agent sessions.
 
 Claude Code writes everything it does to a JSONL file. Most of it is machinery:

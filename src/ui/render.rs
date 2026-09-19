@@ -628,6 +628,8 @@ fn feed(f: &mut Frame, area: Rect, app: &mut App) {
         if *start >= top + h {
             break;
         }
+        #[cfg(test)]
+        crate::ui::app::ROWS_BUILT.with(|n| n.set(n.get() + 1));
         match app.view[vi] {
             crate::ui::app::Row::Origin(i) => {
                 lines.push(divider(&app.origins[i], w, &t));
@@ -2217,15 +2219,46 @@ mod tests {
         // linear in the conversation: 36ms at ten thousand messages and 178ms
         // at fifty thousand, which is five frames a second.
         //
-        // The assertion is on the shape rather than on a wall-clock number, so
-        // it means the same thing on a busy machine as on an idle one.
-        let small = frame_ms(2_000).max(0.05);
-        let large = frame_ms(20_000);
-        let growth = large / small;
-        assert!(
-            growth < 4.0,
-            "ten times the messages cost {growth:.1}x the frame \
-             ({small:.2}ms -> {large:.2}ms); drawing has gone linear again"
+        // Both halves of the fix are asserted as counts, not as elapsed time.
+        // A wall-clock ratio said the same thing but failed about once in a
+        // dozen runs, because the frames being compared are ~0.08ms and one
+        // scheduling hiccup is louder than the entire signal.
+        use crate::ui::app::{LAYOUTS, ROWS_BUILT};
+        let mut touched = Vec::new();
+        for rows in [2_000usize, 20_000] {
+            let events: Vec<Event> = (0..rows)
+                .map(|i| ev(turn(i), &format!("line-{i}"), "some original text", None))
+                .collect();
+            let mut a = app_with(events);
+            a.go_bottom();
+            let h = 40u16;
+            let mut t = Terminal::new(TestBackend::new(100, h)).unwrap();
+            // The first frame is allowed to measure the conversation; it is
+            // every frame after it that must not.
+            t.draw(|f| draw(f, &mut a)).unwrap();
+
+            LAYOUTS.with(|n| n.set(0));
+            ROWS_BUILT.with(|n| n.set(0));
+            for _ in 0..5 {
+                t.draw(|f| draw(f, &mut a)).unwrap();
+            }
+            let layouts = LAYOUTS.with(std::cell::Cell::get);
+            let built = ROWS_BUILT.with(std::cell::Cell::get);
+            assert_eq!(
+                layouts, 0,
+                "{rows} messages: the conversation was measured again \
+                 {layouts} times after the first frame"
+            );
+            assert!(
+                built <= 5 * (h as usize + 2),
+                "{rows} messages: five frames built {built} rows, which is more \
+                 than the {h} on screen — drawing has gone linear again"
+            );
+            touched.push(built);
+        }
+        assert_eq!(
+            touched[0], touched[1],
+            "ten times the messages built a different number of rows: {touched:?}"
         );
     }
 
