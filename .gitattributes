@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.png binary
+*.gz binary
+
+# Generated from the items in cairn/. Reviewing the diff twice is noise.
+ROADMAP.md linguist-generated=true
+Cargo.lock -diff

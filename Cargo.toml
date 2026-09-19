@@ -1,0 +1,60 @@
+[package]
+name = "moan"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "A compressed, live transcript of your coding-agent sessions"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/oddurs/moan"
+homepage = "https://github.com/oddurs/moan"
+documentation = "https://github.com/oddurs/moan#readme"
+authors = ["Oddur Sigurdsson <oddurs@gmail.com>"]
+keywords = ["tui", "transcript", "claude-code", "codex", "opencode"]
+categories = ["command-line-utilities", "development-tools"]
+# A published crate is the program, not the workspace around it. Without this
+# the tracker, the roadmap and the hooks travel to crates.io for no reason.
+exclude = ["/cairn", "/cairn.toml", "/ROADMAP.md", "/.githooks", "/.github", "/docs"]
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["std", "clock", "serde"] }
+clap = { version = "4", features = ["derive"] }
+crossterm = { version = "0.29", features = ["event-stream"] }
+directories = "6"
+ratatui = "0.30"
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "webpki-roots", "http2", "charset"] }
+rusqlite = { version = "0.40", features = ["bundled"] }
+turso = "0.8.0-pre.11"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tokio-stream = "0.1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "fs"] }
+toml = "0.9"
+unicode-width = "0.2"
+
+# The lint policy lives here rather than in whatever flags somebody remembers
+# to pass, so `cargo clippy` alone is the whole check and CI cannot drift from
+# what runs locally.
+[lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+# These three are clean, and denying them is what keeps them clean. A cast that
+# wraps or loses a sign in code that turns database integers into indices is a
+# bug that shows up as nonsense a long way from the cast.
+cast_possible_wrap = "deny"
+cast_sign_loss = "deny"
+cast_precision_loss = "deny"
+# `cast_possible_truncation` is left alone deliberately: the remaining sites are
+# terminal geometry, bounded by the size of a screen, and annotating two dozen
+# of those would bury the one that ever matters. The one that did matter — an
+# absolute line offset narrowed to u16, which put mouse clicks on the wrong
+# message past 65535 lines — is fixed and has a test.
+
+[profile.release]
+lto = "thin"
+strip = true

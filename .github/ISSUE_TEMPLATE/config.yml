@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security report
+    url: https://github.com/oddurs/moan/security/advisories/new
+    about: A secret that escaped, or anything that sends data it should not. Not a public issue.

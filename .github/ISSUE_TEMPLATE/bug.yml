@@ -1,0 +1,30 @@
+name: Bug
+description: Something does not do what it says.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: The smallest sequence that shows it.
+      placeholder: |
+        1.
+        2.
+    validations: { required: true }
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Paste `moan config` and `moan --version`. It reports no key values.
+      render: text
+    validations: { required: true }

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# The seam. CI and the git hooks know only these verbs, so they cannot drift
+# from what you run by hand.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+usage() { echo "usage: scripts/task {fmt|fmt:check|lint|test|build|check|bench}" >&2; exit 2; }
+
+case "${1:-}" in
+  fmt)        cargo fmt ;;
+  fmt:check)  cargo fmt --check ;;
+  # The lint policy lives in Cargo.toml, so this needs no flags to be strict.
+  lint)       cargo clippy --all-targets --locked ;;
+  test)       cargo test --locked ;;
+  build)      cargo build --release --locked ;;
+  # Slow, measured things, kept out of `check` so `check` stays quick.
+  bench)      cargo test --release -- --ignored --nocapture ;;
+  check)
+    "$0" fmt:check
+    "$0" lint
+    "$0" test
+    "$0" build
+    ;;
+  *) usage ;;
+esac

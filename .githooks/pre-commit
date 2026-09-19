@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Everything that reaches a commit is green. Never bypass with --no-verify:
+# the hook exists so the next person does not have to find out the hard way.
+set -euo pipefail
+exec "$(git rev-parse --show-toplevel)/scripts/task" check

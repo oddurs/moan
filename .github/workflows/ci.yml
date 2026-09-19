@@ -1,0 +1,66 @@
+name: check
+on:
+  push:
+  pull_request:
+
+# Nothing here writes anything. A token that could is a token worth stealing.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    # v1.0 promises both, so both are proven on every push rather than
+    # discovered at release.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      # The same verb the git hook runs. If they differ, one of them is lying.
+      - run: ./scripts/task check
+
+  # The manifest claims an MSRV. Claiming one without building on it is how a
+  # crate quietly stops working for everyone who is not on the newest release.
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: msrv
+        run: echo "v=$(sed -n 's/^rust-version *= *"\(.*\)"/\1/p' Cargo.toml)" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.msrv.outputs.v }}
+      - uses: Swatinem/rust-cache@v2
+      # rust-toolchain.toml pins a newer channel and rustup obeys it over the
+      # installed default, so without this the job silently tests the pin and
+      # proves nothing about the floor.
+      - run: cargo check --locked --all-targets
+        env:
+          RUSTUP_TOOLCHAIN: ${{ steps.msrv.outputs.v }}
+
+  # A lockfile that has drifted from the manifest breaks `--locked` builds,
+  # which is what every release and every install from source uses.
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo metadata --locked --format-version 1 > /dev/null
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
