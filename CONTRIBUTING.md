@@ -29,7 +29,7 @@ wrong, fix the check.
 ## What a change looks like
 
 - **One unit of work, one branch, one pull request.** Branch `<type>/<slug>`
-  where type is one of `feat fix chore docs perf refactor test`. Where the
+  where type is one of `feat fix chore docs perf refactor test build ci`. Where the
   work has a cairn item, the slug starts with its id: `fix/0041-attach-to-a-terminal`.
 - **Conventional Commits.** Imperative, subject ≤ 72 characters, no trailing
   full stop. The body explains *why*; the diff already says what.
