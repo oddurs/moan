@@ -1,0 +1,15 @@
+# What `cargo audit` is allowed to pass over, and why. An ignore with no reason
+# beside it becomes permanent by accident.
+
+[advisories]
+ignore = [
+    # RUSTSEC-2026-0253 — `LruCache::pop()` is not panic-safe, so a panic in a
+    # user callback can leave a dangling reference. Reached only through
+    # tantivy inside turso_core, which is the full-text index of an engine
+    # moan does not use by default and never queries (see docs/0001-turso.md).
+    #
+    # Unsoundness rather than a vulnerability, and there is nothing upstream to
+    # take yet. Revisit if turso becomes the default engine, or when lru
+    # publishes a fix — whichever comes first.
+    "RUSTSEC-2026-0253",
+]
