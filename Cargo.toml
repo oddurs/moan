@@ -28,10 +28,10 @@ rusqlite = { version = "0.40", features = ["bundled"] }
 turso = "0.8.0-pre.11"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sha2 = "0.10"
+sha2 = "0.11"
 tokio-stream = "0.1"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "fs"] }
-toml = "0.9"
+toml = "1.1"
 unicode-width = "0.2"
 
 # The lint policy lives here rather than in whatever flags somebody remembers
